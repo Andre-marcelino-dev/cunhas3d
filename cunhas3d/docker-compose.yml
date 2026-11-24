@@ -1,0 +1,91 @@
+services:
+  # PHP 8.3 (FPM) rodando o Laravel
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: cunhas3d-app
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    environment:
+      - RUN_SETUP=1
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks: [cunhas3d]
+
+  # Servidor web
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: cunhas3d-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on: [app]
+    networks: [cunhas3d]
+
+  # Banco de dados
+  mysql:
+    image: mysql:8.4
+    container_name: cunhas3d-mysql
+    ports:
+      - "3310:3306"   # Workbench: 127.0.0.1:3310 (3307-3309 já são usadas por outros projetos)
+    environment:
+      MYSQL_DATABASE: cunhas3d
+      MYSQL_USER: cunhas3d
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 300s
+    networks: [cunhas3d]
+
+  # Compila o front (Tailwind, Three.js, GSAP). Use "npm run dev" para hot reload.
+  node:
+    image: node:22-alpine
+    container_name: cunhas3d-node
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    command: sh -c "npm install && npm run build"
+    networks: [cunhas3d]
+
+  # Interface web do banco: http://localhost:8080
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: cunhas3d-phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on: [mysql]
+    networks: [cunhas3d]
+
+  # Executa tarefas agendadas (ex.: cancelar pedidos não pagos)
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: cunhas3d-scheduler
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    entrypoint: ["sh", "-c", "until [ -f vendor/autoload.php ] && [ -f .env ]; do sleep 3; done; php artisan schedule:work"]
+    depends_on: [app]
+    networks: [cunhas3d]
+
+volumes:
+  mysql_data:
+
+networks:
+  cunhas3d:

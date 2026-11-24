@@ -1,0 +1,13 @@
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.phpunit.result.cache
+npm-debug.log
+/database/backups
+
+# Arquivos que o Windows cria ao baixar arquivos
+*:Zone.Identifier

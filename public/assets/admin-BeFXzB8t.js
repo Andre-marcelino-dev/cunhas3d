@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/viewer-Cwq-OAMB.js","assets/three-BlO0nIL8.js","assets/shapes-TyHQrvGk.js"])))=>i.map(i=>d[i]);
+import{n as e,t}from"./preload-helper-C_6svgjp.js";window.toast=(e,t=`success`)=>{window.dispatchEvent(new CustomEvent(`toast`,{detail:{message:e,type:t}}))},document.querySelectorAll(`[data-viewer]`).forEach(e=>t(()=>import(`./viewer-Cwq-OAMB.js`).then(t=>t.initViewer(e)),__vite__mapDeps([0,1,2]))),window.Alpine=e,e.start();

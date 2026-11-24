@@ -1,0 +1,148 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/space-grotesk';
+
+@source '../views';
+@source inline('sm:col-span-{1,2,3,4,5,6}');
+
+@theme {
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Space Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+
+    --color-ink: #06060b;
+    --color-panel: #0e0e18;
+    --color-line: #1f1f33;
+    --color-neon: #22d3ee;
+    --color-plasma: #a78bfa;
+    --color-flare: #f472b6;
+}
+
+@layer base {
+    html {
+        @apply bg-ink text-zinc-200 antialiased;
+        color-scheme: dark;
+    }
+    ::selection {
+        @apply bg-neon/30 text-white;
+    }
+    h1, h2, h3, h4 {
+        @apply font-display tracking-tight text-white;
+    }
+}
+
+@utility container-x {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8;
+}
+
+@utility text-gradient {
+    @apply bg-gradient-to-r from-neon via-plasma to-flare bg-clip-text text-transparent;
+}
+
+@utility btn {
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-6 py-3 text-sm font-semibold transition duration-300 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility btn-primary {
+    @apply btn bg-gradient-to-r from-neon to-plasma text-ink shadow-[0_0_30px_-5px] shadow-neon/60 hover:shadow-[0_0_45px_-5px] hover:shadow-plasma/80 hover:-translate-y-0.5;
+}
+
+@utility btn-ghost {
+    @apply btn border border-white/15 bg-white/5 text-white backdrop-blur hover:border-neon/60 hover:bg-white/10;
+}
+
+@utility btn-danger {
+    @apply btn border border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20;
+}
+
+@utility glass {
+    @apply rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl;
+}
+
+@utility input {
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none transition focus:border-neon/70 focus:bg-white/[0.07] focus:ring-4 focus:ring-neon/10;
+}
+
+@utility label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-zinc-400;
+}
+
+@utility error {
+    @apply mt-1 text-xs text-rose-400;
+}
+
+@utility badge {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium;
+}
+
+@utility chip {
+    @apply rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-neon/50 hover:text-white;
+}
+
+@utility chip-active {
+    @apply border-neon/60 bg-neon/10 text-white;
+}
+
+select.input option {
+    background: var(--color-panel);
+}
+
+/* Card com efeito 3D ao passar o mouse */
+.tilt {
+    transform-style: preserve-3d;
+    transition: transform 0.25s ease-out;
+    will-change: transform;
+}
+.tilt .tilt-glare {
+    background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, 0.18), transparent 55%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.tilt:hover .tilt-glare {
+    opacity: 1;
+}
+
+.grid-bg {
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+.noise::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 60;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.marquee {
+    animation: marquee 30s linear infinite;
+}
+
+@keyframes marquee {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* Elementos animados no scroll começam invisíveis (o GSAP revela) */
+.js [data-reveal] {
+    opacity: 0;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .js [data-reveal] {
+        opacity: 1 !important;
+    }
+    .marquee {
+        animation: none;
+    }
+}
