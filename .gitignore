@@ -11,3 +11,6 @@ npm-debug.log
 
 # Arquivos que o Windows cria ao baixar arquivos
 *:Zone.Identifier
+
+# Marca local de que o seed já rodou
+/storage/app/.seeded
