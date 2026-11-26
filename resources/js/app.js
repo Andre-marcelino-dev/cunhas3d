@@ -125,16 +125,16 @@ document.addEventListener('submit', async (e) => {
             headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             body: new FormData(form),
         });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.message);
         document.querySelectorAll('[data-cart-count]').forEach((el) => {
             el.textContent = data.count;
             el.classList.remove('hidden');
             gsap.fromTo(el, { scale: 1.8 }, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.4)' });
         });
         window.toast(data.message);
-    } catch {
-        window.toast('Não foi possível adicionar. Tente novamente.', 'error');
+    } catch (err) {
+        window.toast(err.message || 'Não foi possível adicionar. Tente novamente.', 'error');
     } finally {
         button && (button.disabled = false);
     }

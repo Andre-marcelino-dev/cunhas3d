@@ -30,14 +30,43 @@
         <span class="text-zinc-300">{{ $product->name }}</span>
     </nav>
 
-    <div class="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
-        {{-- Visualizador 3D / fotos.
-             Sem arquivo .glb e com foto cadastrada: mostra só as fotos (a forma genérica não representa a peça real). --}}
-        @php
-            $photos = collect([$product->image_url])->filter()->merge($product->images->pluck('url'))->values();
-            $show3d = $product->model_url || $photos->isEmpty();
-        @endphp
-        <div x-data="{ tab: '{{ $show3d ? '3d' : 'img0' }}' }" class="lg:sticky lg:top-28 lg:self-start">
+    {{-- Visualizador 3D / fotos.
+         Sem arquivo .glb e com foto cadastrada: mostra só as fotos (a forma genérica não representa a peça real).
+         Variações com foto própria entram na galeria; ao escolher a variação, a foto dela aparece. --}}
+    @php
+        $photos = collect([$product->image_url])->filter()
+            ->merge($product->images->pluck('url'))
+            ->merge($product->variants->map(fn ($v) => $v->image ? $v->image_url : null)->filter())
+            ->unique()->values();
+        $show3d = $product->model_url || $photos->isEmpty();
+
+        $variants = $product->variants->map(fn ($v) => [
+            'id' => $v->id,
+            'name' => $v->name,
+            'price' => (float) $v->price,
+            'final' => $v->final_price,
+            'discount' => $v->discount_percent,
+            'stock' => (int) $v->stock,
+            'photo' => ($i = $photos->search($v->image_url)) !== false ? $i : null,
+        ])->values();
+        $firstVariant = $variants->firstWhere('stock', '>', 0) ?? $variants->first();
+    @endphp
+    <div class="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16"
+         x-data="{
+            tab: '{{ $show3d ? '3d' : 'img0' }}',
+            variants: @js($variants),
+            sel: @js($firstVariant['id'] ?? null),
+            q: 1,
+            get v() { return this.variants.find(x => x.id === this.sel) },
+            brl(n) { return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) },
+            choose(id) {
+                this.sel = id;
+                this.q = Math.min(this.q, Math.max(1, this.v.stock));
+                if (this.v.photo !== null) this.tab = 'img' + this.v.photo;
+            },
+         }"
+         x-init="if (v && v.photo !== null && !{{ $show3d ? 'true' : 'false' }}) tab = 'img' + v.photo">
+        <div class="lg:sticky lg:top-28 lg:self-start">
             <div class="relative aspect-square overflow-hidden rounded-[2rem] border border-white/10"
                  style="background: radial-gradient(circle at 50% 55%, {{ $product->color }}30, transparent 65%), #0a0a12">
                 <div class="grid-bg absolute inset-0"></div>
@@ -75,7 +104,10 @@
             <div class="flex flex-wrap gap-2">
                 <span class="badge border-white/15 text-zinc-300">{{ $product->material }}</span>
                 <span class="badge border-white/15 text-zinc-300">Produção em {{ $product->production_days }} {{ $product->production_days == 1 ? 'dia útil' : 'dias úteis' }}</span>
-                @if($product->inStock())
+                @if($product->hasVariants())
+                    <span x-show="v && v.stock > 0" class="badge border-emerald-400/40 bg-emerald-400/10 text-emerald-300">Em estoque</span>
+                    <span x-cloak x-show="!v || v.stock <= 0" class="badge border-rose-400/40 bg-rose-400/10 text-rose-300">Esgotado</span>
+                @elseif($product->inStock())
                     <span class="badge border-emerald-400/40 bg-emerald-400/10 text-emerald-300">Em estoque</span>
                 @else
                     <span class="badge border-rose-400/40 bg-rose-400/10 text-rose-300">Esgotado</span>
@@ -85,16 +117,51 @@
             <h1 class="mt-5 text-4xl font-bold sm:text-5xl">{{ $product->name }}</h1>
             <p class="mt-4 text-lg text-zinc-400">{{ $product->short_description }}</p>
 
-            <div class="mt-8 flex items-end gap-4">
-                <p class="font-display text-5xl font-bold text-white">{{ money($product->final_price) }}</p>
-                @if($product->discount_percent)
-                    <div class="pb-1.5">
-                        <p class="text-sm text-zinc-500 line-through">{{ money($product->price) }}</p>
-                        <p class="text-sm font-semibold text-flare">{{ $product->discount_percent }}% OFF</p>
+            @if($product->hasVariants())
+                {{-- Preço muda conforme a variação escolhida --}}
+                <div class="mt-8 flex items-end gap-4">
+                    <p class="font-display text-5xl font-bold text-white" x-text="brl(v.final)">{{ money($firstVariant['final']) }}</p>
+                    <div class="pb-1.5" x-show="v.discount" x-cloak>
+                        <p class="text-sm text-zinc-500 line-through" x-text="brl(v.price)"></p>
+                        <p class="text-sm font-semibold text-flare"><span x-text="v.discount"></span>% OFF</p>
                     </div>
-                @endif
-            </div>
-            <p class="mt-2 text-sm text-zinc-400">ou até 12x de {{ money($product->final_price / 12) }} no cartão · <span class="text-neon">Pix</span> com aprovação imediata</p>
+                </div>
+                <p class="mt-2 text-sm text-zinc-400">ou até 12x de <span x-text="brl(v.final / 12)">{{ money($firstVariant['final'] / 12) }}</span> no cartão · <span class="text-neon">Pix</span> com aprovação imediata</p>
+
+                <div class="mt-8">
+                    <p class="label">Escolha a opção</p>
+                    <div class="grid gap-3 sm:grid-cols-2" role="radiogroup">
+                        @foreach($variants as $opt)
+                            <button type="button" role="radio" @click="choose({{ $opt['id'] }})"
+                                    :aria-checked="sel === {{ $opt['id'] }}"
+                                    :class="sel === {{ $opt['id'] }} ? 'border-neon bg-neon/10' : 'border-white/15 bg-white/5 hover:border-white/30'"
+                                    class="flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition {{ $opt['stock'] <= 0 ? 'opacity-50' : '' }}">
+                                <span class="flex items-center gap-3">
+                                    <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-white/30">
+                                        <span x-show="sel === {{ $opt['id'] }}" class="h-2.5 w-2.5 rounded-full bg-neon"></span>
+                                    </span>
+                                    <span>
+                                        <span class="block font-semibold text-white">{{ $opt['name'] }}</span>
+                                        @if($opt['stock'] <= 0)<span class="block text-xs text-rose-300">Esgotado</span>@endif
+                                    </span>
+                                </span>
+                                <span class="shrink-0 font-display font-bold text-white">{{ money($opt['final']) }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            @else
+                <div class="mt-8 flex items-end gap-4">
+                    <p class="font-display text-5xl font-bold text-white">{{ money($product->final_price) }}</p>
+                    @if($product->discount_percent)
+                        <div class="pb-1.5">
+                            <p class="text-sm text-zinc-500 line-through">{{ money($product->price) }}</p>
+                            <p class="text-sm font-semibold text-flare">{{ $product->discount_percent }}% OFF</p>
+                        </div>
+                    @endif
+                </div>
+                <p class="mt-2 text-sm text-zinc-400">ou até 12x de {{ money($product->final_price / 12) }} no cartão · <span class="text-neon">Pix</span> com aprovação imediata</p>
+            @endif
 
             {{-- Pré-visualizar cores (só na forma 3D gerada automaticamente) --}}
             @if($show3d && $product->model_recolorable)
@@ -109,8 +176,22 @@
             </div>
             @endif
 
-            @if($product->inStock())
-                <form method="POST" action="{{ route('cart.add', $product) }}" data-add-to-cart class="mt-8 flex flex-wrap gap-3" x-data="{ q: 1 }">
+            @if($product->hasVariants())
+                {{-- Estoque e limite de quantidade acompanham a variação escolhida --}}
+                <form x-show="v.stock > 0" method="POST" action="{{ route('cart.add', $product) }}" data-add-to-cart class="mt-8 flex flex-wrap gap-3">
+                    @csrf
+                    <input type="hidden" name="variant_id" :value="sel">
+                    <div class="flex items-center rounded-full border border-white/15 bg-white/5">
+                        <button type="button" @click="q = Math.max(1, q - 1)" class="h-12 w-12 text-xl text-zinc-400 hover:text-white">−</button>
+                        <input name="quantity" x-model.number="q" type="number" min="1" :max="v.stock" class="w-10 bg-transparent text-center text-white outline-none [appearance:textfield]">
+                        <button type="button" @click="q = Math.min(v.stock, q + 1)" class="h-12 w-12 text-xl text-zinc-400 hover:text-white">+</button>
+                    </div>
+                    <button type="submit" class="btn-ghost flex-1 !py-3.5">Adicionar ao carrinho</button>
+                    <button type="submit" name="buy_now" value="1" data-magnetic class="btn-primary flex-1 !py-3.5">Comprar agora</button>
+                </form>
+                <div x-cloak x-show="v.stock <= 0" class="glass mt-8 !rounded-2xl p-5 text-sm text-zinc-400">Esta opção está esgotada no momento. Escolha outra ou volte em breve!</div>
+            @elseif($product->inStock())
+                <form method="POST" action="{{ route('cart.add', $product) }}" data-add-to-cart class="mt-8 flex flex-wrap gap-3">
                     @csrf
                     <div class="flex items-center rounded-full border border-white/15 bg-white/5">
                         <button type="button" @click="q = Math.max(1, q - 1)" class="h-12 w-12 text-xl text-zinc-400 hover:text-white">−</button>

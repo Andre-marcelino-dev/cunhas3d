@@ -68,6 +68,43 @@ class Product extends Model
         return $this->hasMany(ProductImage::class)->orderBy('position');
     }
 
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('position')->orderBy('id');
+    }
+
+    public function hasVariants(): bool
+    {
+        return $this->variants->isNotEmpty();
+    }
+
+    /** Variações com preços diferentes: a vitrine mostra "a partir de" */
+    public function hasPriceRange(): bool
+    {
+        return $this->variants->map(fn (ProductVariant $v) => $v->final_price)->unique()->count() > 1;
+    }
+
+    /**
+     * Com variações, o preço do produto vira o da variação mais barata e o estoque a soma de todas.
+     * Assim filtros, ordenação por preço, cards e o app continuam funcionando sem mudança.
+     */
+    public function syncFromVariants(): void
+    {
+        $variants = $this->variants()->get();
+
+        if ($variants->isEmpty()) {
+            return;
+        }
+
+        $cheapest = $variants->sortBy(fn (ProductVariant $v) => $v->final_price)->first();
+
+        $this->update([
+            'price' => $cheapest->price,
+            'sale_price' => $cheapest->sale_price,
+            'stock' => $variants->sum('stock'),
+        ]);
+    }
+
     /** Preço que o cliente paga (promocional, se houver) */
     public function getFinalPriceAttribute(): float
     {

@@ -90,7 +90,7 @@
             <h2 class="text-xl font-semibold">Seu pedido</h2>
             <ul class="mt-5 space-y-3 text-sm">
                 @foreach($items as $item)
-                    <li class="flex justify-between gap-3"><span class="text-zinc-300">{{ $item->quantity }}× {{ $item->product->name }}</span><span class="shrink-0 text-white">{{ money($item->total) }}</span></li>
+                    <li class="flex justify-between gap-3"><span class="text-zinc-300">{{ $item->quantity }}× {{ $item->name }}</span><span class="shrink-0 text-white">{{ money($item->total) }}</span></li>
                 @endforeach
             </ul>
             <div class="my-5 h-px bg-white/10"></div>

@@ -8,6 +8,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\WebhookController;
+use App\Services\CartService;
 use Illuminate\Support\Facades\Route;
 
 // ----------------------------------------------------------------- Loja
@@ -20,8 +21,8 @@ Route::get('/produto/{product}', [ProductController::class, 'show'])->name('prod
 Route::prefix('carrinho')->name('cart.')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('index');
     Route::post('/adicionar/{product}', [CartController::class, 'add'])->name('add');
-    Route::patch('/{product}', [CartController::class, 'update'])->name('update');
-    Route::delete('/{product}', [CartController::class, 'remove'])->name('remove');
+    Route::patch('/{key}', [CartController::class, 'update'])->name('update')->where('key', CartService::KEY_PATTERN);
+    Route::delete('/{key}', [CartController::class, 'remove'])->name('remove')->where('key', CartService::KEY_PATTERN);
 });
 
 // ----------------------------------------------------------------- Autenticação

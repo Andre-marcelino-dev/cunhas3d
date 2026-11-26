@@ -28,7 +28,9 @@
             <h3 class="mt-1 line-clamp-1 text-base font-semibold text-white">{{ $product->name }}</h3>
             <div class="mt-3 flex items-end justify-between">
                 <div>
-                    @if($product->discount_percent)
+                    @if($product->relationLoaded('variants') && $product->hasPriceRange())
+                        <p class="text-xs text-zinc-500">a partir de</p>
+                    @elseif($product->discount_percent)
                         <p class="text-xs text-zinc-500 line-through">{{ money($product->price) }}</p>
                     @endif
                     <p class="font-display text-xl font-bold text-white">{{ money($product->final_price) }}</p>

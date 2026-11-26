@@ -32,6 +32,7 @@ class PedidoController extends Controller
         $dados = $request->validate([
             'itens' => 'required|array|min:1|max:50',
             'itens.*.produto_id' => 'required|integer',
+            'itens.*.variacao_id' => 'nullable|integer',
             'itens.*.quantidade' => 'required|integer|min:1|max:99',
             'endereco_id' => 'required|integer',
             'observacao' => 'nullable|string|max:500',

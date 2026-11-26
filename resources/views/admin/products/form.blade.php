@@ -7,9 +7,31 @@
 @endsection
 
 @section('content')
+@php
+    // Linhas de variação: após erro de validação, volta o que foi digitado; senão, o que está salvo
+    $savedVariants = $product->relationLoaded('variants') ? $product->variants->keyBy('id') : collect();
+    $variantRows = collect(old('variants', $savedVariants->map(fn ($v) => $v->only('id', 'name', 'price', 'sale_price', 'stock'))->values()->all()))
+        ->values()
+        ->map(fn ($row, $i) => [
+            'uid' => $i + 1,
+            'id' => $row['id'] ?? null,
+            'name' => $row['name'] ?? '',
+            'price' => $row['price'] ?? '',
+            'sale_price' => $row['sale_price'] ?? '',
+            'stock' => $row['stock'] ?? 0,
+            'image_url' => isset($row['id'], $savedVariants[$row['id']]) && $savedVariants[$row['id']]->image
+                ? $savedVariants[$row['id']]->image_url : null,
+        ]);
+@endphp
 <form method="POST" enctype="multipart/form-data"
       action="{{ $product->exists ? route('admin.products.update', $product) : route('admin.products.store') }}"
-      class="grid gap-6 xl:grid-cols-3">
+      class="grid gap-6 xl:grid-cols-3"
+      x-data="{
+          rows: @js($variantRows),
+          next: {{ $variantRows->count() + 1 }},
+          add() { this.rows.push({ uid: this.next++, id: null, name: '', price: '', sale_price: '', stock: 0, image_url: null }) },
+          remove(i) { this.rows.splice(i, 1) },
+      }">
     @csrf
     @if($product->exists) @method('PUT') @endif
 
@@ -50,20 +72,24 @@
 
         <section class="glass space-y-5 !rounded-2xl p-6">
             <h2 class="text-lg font-semibold">Preço e estoque</h2>
+            <p x-show="rows.length" x-cloak class="rounded-xl border border-neon/30 bg-neon/10 p-3 text-xs text-zinc-300">
+                Este produto tem variações: o preço e o estoque são definidos em cada variação, logo abaixo.
+                A loja mostra "a partir de" com o preço da variação mais barata.
+            </p>
             <div class="grid gap-5 sm:grid-cols-3">
-                <div>
+                <div x-show="!rows.length">
                     <label class="label" for="price">Preço (R$) *</label>
-                    <input id="price" name="price" type="number" step="0.01" min="0.01" value="{{ old('price', $product->price) }}" required class="input">
+                    <input id="price" name="price" type="number" step="0.01" min="0.01" value="{{ old('price', $product->price) }}" :required="!rows.length" :disabled="rows.length > 0" class="input">
                     @error('price')<p class="error">{{ $message }}</p>@enderror
                 </div>
-                <div>
+                <div x-show="!rows.length">
                     <label class="label" for="sale_price">Preço promocional</label>
-                    <input id="sale_price" name="sale_price" type="number" step="0.01" min="0" value="{{ old('sale_price', $product->sale_price) }}" class="input">
+                    <input id="sale_price" name="sale_price" type="number" step="0.01" min="0" value="{{ old('sale_price', $product->sale_price) }}" :disabled="rows.length > 0" class="input">
                     @error('sale_price')<p class="error">{{ $message }}</p>@enderror
                 </div>
-                <div>
+                <div x-show="!rows.length">
                     <label class="label" for="stock">Estoque *</label>
-                    <input id="stock" name="stock" type="number" min="0" value="{{ old('stock', $product->stock) }}" required class="input">
+                    <input id="stock" name="stock" type="number" min="0" value="{{ old('stock', $product->stock) }}" :required="!rows.length" :disabled="rows.length > 0" class="input">
                 </div>
                 <div>
                     <label class="label" for="weight_grams">Peso (g) *</label>
@@ -82,6 +108,66 @@
                     </select>
                 </div>
             </div>
+        </section>
+
+        <section class="glass space-y-5 !rounded-2xl p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-lg font-semibold">Variações</h2>
+                    <p class="text-xs text-zinc-500">Opcional. Use quando a mesma peça é vendida de formas diferentes, ex.: "Com vela LED" e "Sem vela".</p>
+                </div>
+                <button type="button" @click="add()" class="btn-ghost !px-4 !py-2 text-sm">+ Adicionar variação</button>
+            </div>
+
+            @if($errors->has('variants') || $errors->has('variants.*'))
+                <div class="rounded-xl border border-rose-400/40 bg-rose-400/10 p-3 text-sm text-rose-200">
+                    @foreach(collect($errors->get('variants'))->merge(collect($errors->get('variants.*'))->flatten())->unique() as $message)
+                        <p>{{ $message }}</p>
+                    @endforeach
+                </div>
+            @endif
+
+            <template x-for="(row, i) in rows" :key="row.uid">
+                <div class="grid gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4 sm:grid-cols-[96px_1fr]">
+                    <input type="hidden" :name="`variants[${i}][id]`" :value="row.id">
+                    <div>
+                        <div class="grid h-24 w-24 place-items-center overflow-hidden rounded-xl border border-white/10 bg-white/5 text-[11px] text-zinc-500">
+                            <template x-if="row.image_url"><img :src="row.image_url" alt="" class="h-full w-full object-cover"></template>
+                            <template x-if="!row.image_url"><span class="px-2 text-center">usa a imagem principal</span></template>
+                        </div>
+                        <template x-if="row.image_url && row.id">
+                            <label class="mt-2 flex items-center gap-1.5 text-[11px] text-zinc-400"><input type="checkbox" :name="`variants[${i}][remove_image]`" value="1"> remover foto</label>
+                        </template>
+                    </div>
+                    <div class="grid gap-3 sm:grid-cols-4">
+                        <div class="sm:col-span-4">
+                            <label class="label">Nome da variação *</label>
+                            <input :name="`variants[${i}][name]`" x-model="row.name" maxlength="80" required placeholder="Ex.: Com vela LED" class="input">
+                        </div>
+                        <div>
+                            <label class="label">Preço (R$) *</label>
+                            <input :name="`variants[${i}][price]`" x-model="row.price" type="number" step="0.01" min="0.01" required class="input">
+                        </div>
+                        <div>
+                            <label class="label">Promocional</label>
+                            <input :name="`variants[${i}][sale_price]`" x-model="row.sale_price" type="number" step="0.01" min="0" class="input">
+                        </div>
+                        <div>
+                            <label class="label">Estoque *</label>
+                            <input :name="`variants[${i}][stock]`" x-model="row.stock" type="number" min="0" required class="input">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="button" @click="remove(i)" class="w-full rounded-xl border border-rose-400/30 px-3 py-2.5 text-sm text-rose-300 hover:bg-rose-500/10">Remover</button>
+                        </div>
+                        <div class="sm:col-span-4">
+                            <label class="label">Foto desta variação</label>
+                            <input :name="`variants[${i}][image]`" type="file" accept="image/*" class="input text-xs file:mr-3 file:rounded-full file:border-0 file:bg-neon file:px-3 file:py-1 file:text-xs file:font-semibold file:text-ink">
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <p x-show="!rows.length" class="text-sm text-zinc-500">Nenhuma variação: o produto é vendido com o preço e o estoque acima.</p>
         </section>
 
         <section class="glass space-y-5 !rounded-2xl p-6">

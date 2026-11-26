@@ -22,7 +22,7 @@ class ProductController extends Controller
 
     private function listing(Request $request, ?Category $category = null)
     {
-        $query = Product::active()->with('category');
+        $query = Product::active()->with('category', 'variants');
 
         if ($category) {
             $ids = $category->children()->pluck('id')->push($category->id);
@@ -61,12 +61,13 @@ class ProductController extends Controller
     {
         abort_unless($product->active, 404);
 
-        $product->load('category', 'images');
+        $product->load('category', 'images', 'variants');
 
         return view('store.product', [
             'product' => $product,
             'related' => Product::active()
                 ->where('category_id', $product->category_id)
+                ->with('variants')
                 ->whereKeyNot($product->id)
                 ->inRandomOrder()->take(4)->get(),
         ]);

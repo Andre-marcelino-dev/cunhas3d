@@ -54,7 +54,7 @@ class LojaController extends Controller
 
     public function produto(string $slug)
     {
-        $produto = Product::active()->with(['category', 'images'])->where('slug', $slug)->firstOrFail();
+        $produto = Product::active()->with(['category', 'images', 'variants'])->where('slug', $slug)->firstOrFail();
 
         return response()->json(['success' => true, 'data' => Formata::produto($produto, true)]);
     }
@@ -65,6 +65,7 @@ class LojaController extends Controller
         $dados = $request->validate([
             'itens' => 'present|array|max:50',
             'itens.*.produto_id' => 'required|integer',
+            'itens.*.variacao_id' => 'nullable|integer',
             'itens.*.quantidade' => 'required|integer|min:1|max:99',
         ]);
 
@@ -73,6 +74,9 @@ class LojaController extends Controller
         return response()->json(['success' => true, 'data' => [
             'itens' => $linhas->map(fn ($l) => [
                 'produto' => Formata::produto($l->product),
+                'variacao' => $l->variant ? ['id' => $l->variant->id, 'nome' => $l->variant->name] : null,
+                'nome' => $l->name,
+                'preco_unitario' => $l->unit_price,
                 'quantidade' => $l->quantity,
                 'total' => $l->total,
             ]),

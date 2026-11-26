@@ -3,8 +3,9 @@
 namespace App\Services\Api;
 
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\User;
+use App\Services\CartService;
+use App\Services\OrderService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -16,26 +17,21 @@ use Illuminate\Validation\ValidationException;
  */
 class SacolaApi
 {
-    /** @return Collection<int, object{product: Product, quantity: int, total: float}> */
+    public function __construct(private OrderService $orders) {}
+
+    /**
+     * Itens vêm como [{produto_id, variacao_id?, quantidade}].
+     * Produtos com variações exigem variacao_id (sem ela a linha é ignorada).
+     *
+     * @return Collection itens no mesmo formato de CartService::resolve()
+     */
     public function itens(array $itens): Collection
     {
         $quantidades = collect($itens)
-            ->groupBy('produto_id')
-            ->map(fn ($linhas) => (int) $linhas->sum('quantidade'))
-            ->filter(fn ($q) => $q > 0);
+            ->groupBy(fn ($i) => empty($i['variacao_id']) ? (string) $i['produto_id'] : "{$i['produto_id']}-{$i['variacao_id']}")
+            ->map(fn ($linhas) => (int) $linhas->sum('quantidade'));
 
-        if ($quantidades->isEmpty()) {
-            return collect();
-        }
-
-        return Product::active()->with('category')
-            ->whereIn('id', $quantidades->keys())
-            ->get()
-            ->map(fn (Product $p) => (object) [
-                'product' => $p,
-                'quantity' => $quantidades[$p->id],
-                'total' => round($p->final_price * $quantidades[$p->id], 2),
-            ])->values();
+        return CartService::resolve($quantidades->all());
     }
 
     public function frete(float $subtotal): float
@@ -67,16 +63,7 @@ class SacolaApi
         }
 
         return DB::transaction(function () use ($user, $linhas, $entrega) {
-            $produtos = Product::whereIn('id', $linhas->pluck('product.id'))->lockForUpdate()->get()->keyBy('id');
-
-            foreach ($linhas as $linha) {
-                $produto = $produtos[$linha->product->id];
-                if ($produto->stock < $linha->quantity) {
-                    throw ValidationException::withMessages([
-                        'itens' => "Estoque insuficiente para \"{$produto->name}\". Disponível: {$produto->stock}.",
-                    ]);
-                }
-            }
+            $this->orders->reserveStock($linhas, 'itens');
 
             $subtotal = round($linhas->sum('total'), 2);
             $frete = $this->frete($subtotal);
@@ -91,18 +78,7 @@ class SacolaApi
                 'total' => round($subtotal + $frete, 2),
             ]);
 
-            foreach ($linhas as $linha) {
-                $pedido->items()->create([
-                    'product_id' => $linha->product->id,
-                    'name' => $linha->product->name,
-                    'sku' => $linha->product->sku,
-                    'price' => $linha->product->final_price,
-                    'quantity' => $linha->quantity,
-                    'total' => $linha->total,
-                ]);
-
-                $produtos[$linha->product->id]->decrement('stock', $linha->quantity);
-            }
+            $this->orders->createItems($pedido, $linhas);
 
             $pedido->histories()->create(['status' => Order::STATUS_PENDING, 'note' => 'Pedido criado pelo app']);
 

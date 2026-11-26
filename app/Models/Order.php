@@ -101,6 +101,9 @@ class Order extends Model
                     if ($item->product_id) {
                         Product::whereKey($item->product_id)->increment('stock', $item->quantity);
                     }
+                    if ($item->product_variant_id) {
+                        ProductVariant::whereKey($item->product_variant_id)->increment('stock', $item->quantity);
+                    }
                 }
                 $this->update(['stock_restored' => true]);
             }

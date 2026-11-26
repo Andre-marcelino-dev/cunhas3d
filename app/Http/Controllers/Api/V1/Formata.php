@@ -65,6 +65,16 @@ class Formata
                 'peso_gramas' => (int) $p->weight_grams,
                 'prazo_producao' => (int) $p->production_days,
                 'imagens' => $p->images->map(fn ($i) => self::caminho($i->path))->values(),
+                // Produtos com variações: o app deve enviar variacao_id ao calcular a sacola e criar o pedido
+                'variacoes' => $p->variants->map(fn ($v) => [
+                    'id' => $v->id,
+                    'nome' => $v->name,
+                    'preco' => (float) $v->price,
+                    'preco_final' => $v->final_price,
+                    'desconto' => $v->discount_percent,
+                    'estoque' => (int) $v->stock,
+                    'imagem' => self::caminho($v->image ?? $p->image),
+                ])->values(),
             ];
         }
 
@@ -111,6 +121,7 @@ class Formata
             'criado_em' => $o->created_at?->toIso8601String(),
             'itens' => $o->items->map(fn ($i) => [
                 'produto_id' => $i->product_id,
+                'variacao_id' => $i->product_variant_id,
                 'nome' => $i->name,
                 'preco' => (float) $i->price,
                 'quantidade' => (int) $i->quantity,
