@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\PushService;
 use App\Services\StoreNotifier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -97,6 +98,9 @@ class Order extends Model
         if ($previous === self::STATUS_PENDING && $status === self::STATUS_PAID) {
             app(StoreNotifier::class)->orderPaid($this);
         }
+
+        // Notificação no app do cliente (pago, em produção, enviado, entregue)
+        app(PushService::class)->orderStatusChanged($this);
     }
 
     /**

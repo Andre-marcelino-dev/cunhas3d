@@ -34,6 +34,7 @@ class Product extends Model
         'sale_price' => 'decimal:2',
         'featured' => 'boolean',
         'active' => 'boolean',
+        'push_announced_at' => 'datetime',
     ];
 
     protected static function booted(): void

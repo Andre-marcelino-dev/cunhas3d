@@ -90,6 +90,8 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('mensagens/{message}', [Admin\MessageController::class, 'show'])->name('messages.show');
     Route::post('mensagens/{message}/nao-lida', [Admin\MessageController::class, 'unread'])->name('messages.unread');
     Route::delete('mensagens/{message}', [Admin\MessageController::class, 'destroy'])->name('messages.destroy');
+    Route::get('notificacoes', [Admin\PushController::class, 'index'])->name('push.index');
+    Route::post('notificacoes', [Admin\PushController::class, 'store'])->middleware('throttle:10,1')->name('push.store');
     Route::get('clientes', [Admin\CustomerController::class, 'index'])->name('customers.index');
     Route::get('perfil', [Admin\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('perfil', [Admin\ProfileController::class, 'update'])->name('profile.update');

@@ -155,3 +155,11 @@ O site envia e-mails (código de senha etc.) por uma conta de e-mail **da Locawe
 2. **Cache:** apague os arquivos de `cunhas3d-app/storage/framework/views/`.
 3. Os avisos vão para o `MAIL_REPLY_TO_ADDRESS` (cunhas3d@outlook.com). Para mandar para outro e-mail, acrescente no `.env`: `LOJA_EMAIL_AVISOS=outro@email.com`.
 4. **Conferir:** mande uma mensagem pelo "Ficou com alguma dúvida?" de um produto e veja se o aviso chega no Outlook.
+
+### Atualização de 27/11/2026: notificações no app
+
+1. **Banco:** rode `atualizacao-2026-11-27-notificacoes.sql` no phpMyAdmin (cria as tabelas das notificações).
+2. **Arquivos:** envie por cima `cunhas3d-app/app`, `config`, `routes`, `database`, `resources/views` e, da pasta `vendor`, só: `autoload.php`, `composer/`, `minishlink/`, `spomky-labs/`, `web-token/` e `symfony/polyfill-php82/` (bibliotecas novas do Web Push).
+3. **`.env`:** acrescente `VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY` (gere com `php artisan push:chaves`). Não troque essas chaves depois: quem já ativou as notificações deixaria de receber.
+4. **Cache:** apague os arquivos de `storage/framework/views/` e, se existir, `bootstrap/cache/config.php`.
+5. **Conferir:** o admin deve mostrar o menu **Notificações** sem o aviso amarelo de "não configuradas".

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClienteController;
 use App\Http\Controllers\Api\V1\EnderecoController;
 use App\Http\Controllers\Api\V1\LojaController;
+use App\Http\Controllers\Api\V1\NotificacaoController;
 use App\Http\Controllers\Api\V1\PedidoController;
 use App\Http\Controllers\Api\V1\RelacionamentoController;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,13 @@ Route::prefix('v1')->group(function () {
     Route::get('produtos/{slug}', [LojaController::class, 'produto']);
     Route::post('sacola/calcular', [LojaController::class, 'calcularSacola']);
     Route::get('depoimentos', [RelacionamentoController::class, 'depoimentos']);
+
+    // Notificações no app (com ou sem login)
+    Route::get('notificacoes/chave', [NotificacaoController::class, 'chave']);
+    Route::middleware('throttle:20,1')->group(function () {
+        Route::post('notificacoes', [NotificacaoController::class, 'inscrever']);
+        Route::delete('notificacoes', [NotificacaoController::class, 'cancelar']);
+    });
 
     Route::middleware('throttle:10,1')->group(function () {
         Route::post('auth/login', [AuthController::class, 'login']);

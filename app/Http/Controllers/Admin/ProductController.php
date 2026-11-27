@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Services\PushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -53,6 +54,9 @@ class ProductController extends Controller
             return $product;
         });
 
+        // Produto novo e ativo: avisa no app (uma vez só por produto)
+        app(PushService::class)->announceProduct($product);
+
         return redirect()->route('admin.products.edit', $product)->with('success', 'Produto cadastrado!');
     }
 
@@ -71,6 +75,9 @@ class ProductController extends Controller
             $this->storeGallery($request, $product);
             $this->syncVariants($product, $variants);
         });
+
+        // Produto cadastrado inativo e ativado agora pela primeira vez: anuncia no app
+        app(PushService::class)->announceProduct($product->fresh());
 
         return redirect()->route('admin.products.edit', $product)->with('success', 'Produto atualizado!');
     }

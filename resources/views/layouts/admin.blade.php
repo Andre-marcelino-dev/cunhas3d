@@ -16,6 +16,7 @@
         ['admin.products.*', 'Produtos', 'M12 3 3 8l9 5 9-5-9-5Zm-9 5v8l9 5 9-5V8', 'admin.products.index'],
         ['admin.categories.*', 'Categorias', 'M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v6H4zM13 14h7v6h-7z', 'admin.categories.index'],
         ['admin.messages.*', 'Mensagens', 'M4 6h16v12H4zM4 7l8 6 8-6', 'admin.messages.index'],
+        ['admin.push.*', 'Notificações', 'M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0', 'admin.push.index'],
         ['admin.customers.*', 'Clientes', 'M16 19v-1a4 4 0 0 0-8 0v1M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z', 'admin.customers.index'],
         ['admin.profile.*', 'Meu perfil', 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9a7 7 0 0 1 14 0', 'admin.profile.edit'],
     ];
