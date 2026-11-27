@@ -13,6 +13,8 @@ return [
     'loja' => [
         'frete_fixo' => (float) env('LOJA_FRETE_FIXO', 24.90),
         'frete_gratis_acima' => (float) env('LOJA_FRETE_GRATIS_ACIMA', 299),
+        // Quem recebe os avisos de pedido pago e de mensagem nova (padrão: MAIL_REPLY_TO_ADDRESS)
+        'email_avisos' => env('LOJA_EMAIL_AVISOS'),
     ],
 
 ];

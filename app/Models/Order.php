@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\StoreNotifier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -86,8 +87,16 @@ class Order extends Model
             return;
         }
 
+        $previous = $this->status;
+
         $this->update(['status' => $status]);
         $this->histories()->create(['status' => $status, 'note' => $note]);
+
+        // Acabou de ser pago (pelo Mercado Pago ou pelo admin): avisa o cliente e a loja por e-mail.
+        // Só acontece uma vez por pedido, porque daqui pra frente o status não volta a ser "pendente".
+        if ($previous === self::STATUS_PENDING && $status === self::STATUS_PAID) {
+            app(StoreNotifier::class)->orderPaid($this);
+        }
     }
 
     /**

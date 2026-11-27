@@ -148,3 +148,10 @@ O site envia e-mails (código de senha etc.) por uma conta de e-mail **da Locawe
    ```
    `MAIL_USERNAME` e `MAIL_FROM_ADDRESS` precisam ser o mesmo e-mail. Se tiver a linha `MAIL_ENCRYPTION`, pode apagar.
 3. **Cache:** apague `cunhas3d-app/bootstrap/cache/config.php`, se existir.
+
+### Atualização de 27/11/2026: e-mails de pedido pago e de mensagem nova
+
+1. **Arquivos:** envie por cima `cunhas3d-app/app`, `cunhas3d-app/config` e `cunhas3d-app/resources/views`. Sem SQL e sem mexer no `.env`.
+2. **Cache:** apague os arquivos de `cunhas3d-app/storage/framework/views/`.
+3. Os avisos vão para o `MAIL_REPLY_TO_ADDRESS` (cunhas3d@outlook.com). Para mandar para outro e-mail, acrescente no `.env`: `LOJA_EMAIL_AVISOS=outro@email.com`.
+4. **Conferir:** mande uma mensagem pelo "Ficou com alguma dúvida?" de um produto e veja se o aviso chega no Outlook.

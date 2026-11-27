@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ContactMessage;
 use App\Models\Product;
+use App\Services\StoreNotifier;
 use Illuminate\Http\Request;
 
 class ContactController extends Controller
@@ -17,7 +18,7 @@ class ContactController extends Controller
         return view('store.contact', ['product' => $product]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, StoreNotifier $notifier)
     {
         // Campo escondido "website": pessoas não veem, robôs de spam preenchem
         if ($request->filled('website')) {
@@ -41,11 +42,14 @@ class ContactController extends Controller
 
         $product = isset($data['product_id']) ? Product::find($data['product_id']) : null;
 
-        ContactMessage::create([
+        $message = ContactMessage::create([
             ...$data,
             'user_id' => $request->user()?->id,
             'subject' => ($data['subject'] ?? null) ?: ($product ? 'Dúvida sobre: '.$product->name : 'Contato pelo site'),
         ]);
+
+        // Avisa a loja por e-mail (se falhar, a mensagem continua salva no admin)
+        $notifier->newContactMessage($message);
 
         return back()->with('success', 'Mensagem enviada! Responderemos no seu e-mail em breve.');
     }
