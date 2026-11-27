@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\WebhookController;
@@ -16,6 +17,10 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/produtos', [ProductController::class, 'index'])->name('products.index');
 Route::get('/categoria/{category}', [ProductController::class, 'category'])->name('categories.show');
 Route::get('/produto/{product}', [ProductController::class, 'show'])->name('products.show');
+
+// ----------------------------------------------------------------- Contato (dúvidas sobre produtos)
+Route::get('/contato', [ContactController::class, 'show'])->name('contact.show');
+Route::post('/contato', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contact.store');
 
 // ----------------------------------------------------------------- Carrinho
 Route::prefix('carrinho')->name('cart.')->group(function () {
@@ -74,6 +79,10 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('pedidos/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
     Route::put('pedidos/{order}', [Admin\OrderController::class, 'update'])->name('orders.update');
     Route::post('pedidos/{order}/sincronizar', [Admin\OrderController::class, 'sync'])->name('orders.sync');
+    Route::get('mensagens', [Admin\MessageController::class, 'index'])->name('messages.index');
+    Route::get('mensagens/{message}', [Admin\MessageController::class, 'show'])->name('messages.show');
+    Route::post('mensagens/{message}/nao-lida', [Admin\MessageController::class, 'unread'])->name('messages.unread');
+    Route::delete('mensagens/{message}', [Admin\MessageController::class, 'destroy'])->name('messages.destroy');
     Route::get('clientes', [Admin\CustomerController::class, 'index'])->name('customers.index');
     Route::get('perfil', [Admin\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('perfil', [Admin\ProfileController::class, 'update'])->name('profile.update');

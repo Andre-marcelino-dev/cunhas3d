@@ -30,7 +30,7 @@
              :class="scrolled ? 'border-white/10 bg-ink/70 backdrop-blur-xl shadow-2xl shadow-black/40' : 'border-transparent'">
             <a href="{{ route('home') }}" class="flex items-center gap-2.5">
                 <svg viewBox="0 0 32 32" class="h-8 w-8"><defs><linearGradient id="lg" x1="0" x2="1"><stop stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs><path fill="url(#lg)" d="M16 2 29 9v14L16 30 3 23V9z"/><path fill="#06060b" d="M16 9.5 23 13.4v6.7l-7 4-7-4v-6.7z" opacity=".85"/><path fill="url(#lg)" d="M9 16.5h14v1.2H9zm0 2.6h14v1.2H9z" opacity=".9"/></svg>
-                <span class="font-display text-lg font-bold tracking-tight text-white">Cunhas <span class="text-gradient">3D</span></span>
+                <span class="whitespace-nowrap font-display text-lg font-bold tracking-tight text-white">Cunhas <span class="text-gradient">3D</span></span>
             </a>
 
             <div class="hidden items-center gap-1 lg:flex">
@@ -114,6 +114,7 @@
                 <li><a href="{{ route('account.orders') }}" class="hover:text-white">Meus pedidos</a></li>
                 <li><a href="{{ route('cart.index') }}" class="hover:text-white">Carrinho</a></li>
                 <li><a href="{{ route('register') }}" class="hover:text-white">Criar conta</a></li>
+                <li><a href="{{ route('contact.show') }}" class="hover:text-white">Fale conosco</a></li>
             </ul>
         </div>
     </div>

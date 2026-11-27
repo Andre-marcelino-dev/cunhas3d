@@ -18,7 +18,7 @@
         'price' => number_format($product->final_price, 2, '.', ''),
         'availability' => $product->inStock() ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
     ],
-], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!}
 </script>
 @endpush
 
@@ -186,8 +186,8 @@
                         <input name="quantity" x-model.number="q" type="number" min="1" :max="v.stock" class="w-10 bg-transparent text-center text-white outline-none [appearance:textfield]">
                         <button type="button" @click="q = Math.min(v.stock, q + 1)" class="h-12 w-12 text-xl text-zinc-400 hover:text-white">+</button>
                     </div>
-                    <button type="submit" class="btn-ghost flex-1 !py-3.5">Adicionar ao carrinho</button>
-                    <button type="submit" name="buy_now" value="1" data-magnetic class="btn-primary flex-1 !py-3.5">Comprar agora</button>
+                    <button type="submit" class="btn-ghost min-w-[9rem] flex-1 whitespace-nowrap !py-3.5"><span class="sm:hidden">Adicionar</span><span class="hidden sm:inline">Adicionar ao carrinho</span></button>
+                    <button type="submit" name="buy_now" value="1" data-magnetic class="btn-primary w-full whitespace-nowrap !py-3.5 sm:w-auto sm:flex-1">Comprar agora</button>
                 </form>
                 <div x-cloak x-show="v.stock <= 0" class="glass mt-8 !rounded-2xl p-5 text-sm text-zinc-400">Esta opção está esgotada no momento. Escolha outra ou volte em breve!</div>
             @elseif($product->inStock())
@@ -198,8 +198,8 @@
                         <input name="quantity" x-model.number="q" type="number" min="1" max="{{ $product->stock }}" class="w-10 bg-transparent text-center text-white outline-none [appearance:textfield]">
                         <button type="button" @click="q = Math.min({{ $product->stock }}, q + 1)" class="h-12 w-12 text-xl text-zinc-400 hover:text-white">+</button>
                     </div>
-                    <button type="submit" class="btn-ghost flex-1 !py-3.5">Adicionar ao carrinho</button>
-                    <button type="submit" name="buy_now" value="1" data-magnetic class="btn-primary flex-1 !py-3.5">Comprar agora</button>
+                    <button type="submit" class="btn-ghost min-w-[9rem] flex-1 whitespace-nowrap !py-3.5"><span class="sm:hidden">Adicionar</span><span class="hidden sm:inline">Adicionar ao carrinho</span></button>
+                    <button type="submit" name="buy_now" value="1" data-magnetic class="btn-primary w-full whitespace-nowrap !py-3.5 sm:w-auto sm:flex-1">Comprar agora</button>
                 </form>
             @else
                 <div class="glass mt-8 !rounded-2xl p-5 text-sm text-zinc-400">Este produto está esgotado no momento. Volte em breve!</div>
@@ -218,6 +218,23 @@
                     <div class="rounded-xl bg-white/[0.03] p-3"><dt class="text-zinc-500">SKU</dt><dd class="text-white">{{ $product->sku }}</dd></div>
                     <div class="rounded-xl bg-white/[0.03] p-3"><dt class="text-zinc-500">Peso aprox.</dt><dd class="text-white">{{ $product->weight_grams }} g</dd></div>
                 </dl>
+            </div>
+
+            {{-- Dúvidas sobre o produto: abre sozinho (e rola até aqui) se o envio voltou com erro --}}
+            @php $contactErrors = $errors->hasAny(['name', 'email', 'phone', 'subject', 'message']); @endphp
+            <div id="duvidas" class="mt-10 border-t border-white/10 pt-8"
+                 x-data="{ open: @js($contactErrors) }"
+                 x-init="if (open) $nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'start' }))">
+                <button type="button" @click="open = !open" :aria-expanded="open" class="flex w-full items-center justify-between gap-4 text-left">
+                    <span>
+                        <span class="block text-xl font-semibold">Ficou com alguma dúvida?</span>
+                        <span class="mt-1 block text-sm text-zinc-400">Pergunte sobre cores, tamanho, prazo ou personalização desta peça.</span>
+                    </span>
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 text-xl text-zinc-300 transition" :class="open && 'rotate-45'">+</span>
+                </button>
+                <div x-cloak x-show="open" x-transition class="mt-6">
+                    <x-contact-form :product="$product" />
+                </div>
             </div>
         </div>
     </div>

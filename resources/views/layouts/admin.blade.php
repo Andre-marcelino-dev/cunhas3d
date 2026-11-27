@@ -15,6 +15,7 @@
         ['admin.orders.*', 'Pedidos', 'M6 7h12l-1 13H7L6 7Zm3 0a3 3 0 0 1 6 0', 'admin.orders.index'],
         ['admin.products.*', 'Produtos', 'M12 3 3 8l9 5 9-5-9-5Zm-9 5v8l9 5 9-5V8', 'admin.products.index'],
         ['admin.categories.*', 'Categorias', 'M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v6H4zM13 14h7v6h-7z', 'admin.categories.index'],
+        ['admin.messages.*', 'Mensagens', 'M4 6h16v12H4zM4 7l8 6 8-6', 'admin.messages.index'],
         ['admin.customers.*', 'Clientes', 'M16 19v-1a4 4 0 0 0-8 0v1M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z', 'admin.customers.index'],
         ['admin.profile.*', 'Meu perfil', 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9a7 7 0 0 1 14 0', 'admin.profile.edit'],
     ];
@@ -30,6 +31,9 @@
             <a href="{{ route($item[3] ?? $item[0]) }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition {{ request()->routeIs($item[0]) ? 'bg-gradient-to-r from-neon/20 to-plasma/10 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white' }}">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" viewBox="0 0 24 24"><path d="{{ $item[2] }}"/></svg>
                 {{ $item[1] }}
+                @if($item[0] === 'admin.messages.*' && ($unreadMessages ??= \App\Models\ContactMessage::unread()->count()))
+                    <span class="ml-auto rounded-full bg-neon px-2 py-0.5 text-[11px] font-bold text-ink">{{ $unreadMessages }}</span>
+                @endif
             </a>
         @endforeach
     </nav>
