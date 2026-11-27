@@ -129,3 +129,22 @@ Para publicar uma nova versão, gere um pacote novo e envie só o que mudou, nor
 1. **Arquivos:** envie por cima `cunhas3d-app/app`, `cunhas3d-app/routes`, `cunhas3d-app/resources/views` e `public_html/cunhas3d/build`. Sem SQL.
 2. **Cache:** apague os arquivos de `cunhas3d-app/storage/framework/views/`.
 3. **Conferir:** em https://cunhas3d.adminfo.dev.br/entrar clique em "Esqueci minha senha", use o seu e-mail de cliente e veja se o código chega. Se aparecer "Não conseguimos enviar o e-mail agora", confira os dados `MAIL_...` no `.env` do servidor.
+
+### Atualização de 27/11/2026: e-mail do site
+
+O site envia e-mails (código de senha etc.) por uma conta de e-mail **da Locaweb**. Contas do Outlook/Hotmail não servem para isso: a Microsoft bloqueia o envio por senha. As respostas dos clientes vão para o e-mail da empresa (`MAIL_REPLY_TO_ADDRESS`).
+
+1. **Arquivo:** envie `cunhas3d-app/config/mail.php`.
+2. **`.env` do servidor:** deixe as linhas de e-mail assim (troque pela conta que você criou no painel, em E-mail):
+   ```
+   MAIL_MAILER=smtp
+   MAIL_HOST=email-ssl.com.br
+   MAIL_PORT=465
+   MAIL_USERNAME=contato@adminfo.dev.br
+   MAIL_PASSWORD=a senha dessa conta
+   MAIL_FROM_ADDRESS="contato@adminfo.dev.br"
+   MAIL_FROM_NAME="${APP_NAME}"
+   MAIL_REPLY_TO_ADDRESS=cunhas3d@outlook.com
+   ```
+   `MAIL_USERNAME` e `MAIL_FROM_ADDRESS` precisam ser o mesmo e-mail. Se tiver a linha `MAIL_ENCRYPTION`, pode apagar.
+3. **Cache:** apague `cunhas3d-app/bootstrap/cache/config.php`, se existir.
