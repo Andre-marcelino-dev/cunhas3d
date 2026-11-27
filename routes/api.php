@@ -31,6 +31,7 @@ Route::prefix('v1')->group(function () {
         Route::post('notificacoes', [NotificacaoController::class, 'inscrever']);
         Route::delete('notificacoes', [NotificacaoController::class, 'cancelar']);
     });
+    Route::post('notificacoes/teste', [NotificacaoController::class, 'testar'])->middleware('throttle:5,1');
 
     Route::middleware('throttle:10,1')->group(function () {
         Route::post('auth/login', [AuthController::class, 'login']);

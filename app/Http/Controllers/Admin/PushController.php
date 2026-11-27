@@ -20,6 +20,7 @@ class PushController extends Controller
             'customers' => PushSubscription::whereNotNull('user_id')->distinct()->count('user_id'),
             'products' => Product::active()->orderBy('name')->get(['id', 'name', 'slug']),
             'history' => PushMessage::latest()->take(20)->get(),
+            'subscriptions' => PushSubscription::with('user:id,name')->latest('updated_at')->take(15)->get(),
         ]);
     }
 

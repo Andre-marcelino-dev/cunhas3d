@@ -62,6 +62,37 @@
                 <div class="rounded-xl bg-white/[0.03] p-3"><dt class="text-zinc-500">Aparelhos</dt><dd class="font-display text-2xl font-bold text-white">{{ $devices }}</dd></div>
                 <div class="rounded-xl bg-white/[0.03] p-3"><dt class="text-zinc-500">Clientes logados</dt><dd class="font-display text-2xl font-bold text-white">{{ $customers }}</dd></div>
             </dl>
+            @if($subscriptions->isNotEmpty())
+                <ul class="mt-4 divide-y divide-white/5 text-sm">
+                    @foreach($subscriptions as $s)
+                        @php
+                            $ua = (string) $s->user_agent;
+                            $device = match (true) {
+                                str_contains($ua, 'Android') => '📱 Android',
+                                (bool) preg_match('/iPhone|iPad/', $ua) => '📱 iPhone',
+                                str_contains($ua, 'Windows') => '💻 Windows',
+                                str_contains($ua, 'Mac OS') => '💻 Mac',
+                                default => '❔ Outro',
+                            };
+                            $browser = match (true) {
+                                str_contains($ua, 'Edg/') => 'Edge',
+                                str_contains($ua, 'SamsungBrowser') => 'Samsung',
+                                str_contains($ua, 'Firefox') => 'Firefox',
+                                str_contains($ua, 'Chrome') => 'Chrome',
+                                str_contains($ua, 'Safari') => 'Safari',
+                                default => '',
+                            };
+                        @endphp
+                        <li class="py-2.5">
+                            <p class="text-white">{{ $device }} <span class="text-zinc-500">{{ $browser }}</span></p>
+                            <p class="text-xs text-zinc-500">
+                                {{ $s->user?->name ?? 'Sem login' }} · ativou {{ $s->created_at->format('d/m H:i') }}
+                                · último envio {{ $s->last_sent_at?->format('d/m H:i') ?? 'nenhum' }}
+                            </p>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
             <p class="mt-4 text-xs leading-relaxed text-zinc-500">O cliente ativa em <em>Configurações → Notificações</em> no app. Avisos automáticos: pedido pago, em produção, enviado e entregue (só para o dono do pedido) e produto novo (para todos, na primeira vez que o produto fica ativo).</p>
         </div>
 

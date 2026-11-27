@@ -45,6 +45,11 @@ class PushService
         return $this->send(PushSubscription::query(), $payload);
     }
 
+    public function toSubscription(PushSubscription $subscription, array $payload): array
+    {
+        return $this->send(PushSubscription::whereKey($subscription->id), $payload);
+    }
+
     public function toUser(int $userId, array $payload): array
     {
         return $this->send(PushSubscription::where('user_id', $userId), $payload);

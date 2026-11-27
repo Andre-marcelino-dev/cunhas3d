@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\PushSubscription;
+use App\Services\PushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -45,6 +46,34 @@ class NotificacaoController extends Controller
         );
 
         return response()->json(['success' => true, 'message' => 'Notificações ativadas!'], 201);
+    }
+
+    /**
+     * Manda uma notificação de teste só para este aparelho (botão "Testar pelo servidor" no app).
+     * Diz se o serviço de push aceitou, para saber se o problema é no servidor ou no celular.
+     */
+    public function testar(Request $request, PushService $push)
+    {
+        $dados = $request->validate(['endpoint' => 'required|string|max:1000']);
+
+        $inscricao = PushSubscription::where('endpoint_hash', PushSubscription::hashOf($dados['endpoint']))->first();
+        if (! $inscricao) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este aparelho não está inscrito no servidor. Desative e ative as notificações de novo.',
+            ], 404);
+        }
+
+        [$enviadas] = $push->toSubscription($inscricao, [
+            'title' => 'Teste do servidor ✅',
+            'body' => 'Se você viu e ouviu isto, as notificações da Cunhas 3D estão funcionando.',
+            'url' => '/configuracoes',
+            'tag' => 'teste',
+        ]);
+
+        return $enviadas
+            ? response()->json(['success' => true, 'message' => 'O servidor enviou. Deve aparecer em alguns segundos.'])
+            : response()->json(['success' => false, 'message' => 'O serviço de notificações recusou este aparelho. Desative e ative de novo.'], 422);
     }
 
     public function cancelar(Request $request)
