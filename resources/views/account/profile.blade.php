@@ -4,7 +4,8 @@
 
 @section('account')
 <div class="space-y-6">
-    <form method="POST" action="{{ route('account.profile.update') }}" class="glass p-6 sm:p-8">
+    <form method="POST" action="{{ route('account.profile.update') }}" class="glass p-6 sm:p-8"
+          x-data="{ original: @js($user->email), email: @js(old('email', $user->email)) }">
         @csrf @method('PUT')
         <h2 class="text-xl font-semibold">Dados pessoais e endereço</h2>
         <div class="mt-6 grid gap-4 sm:grid-cols-6">
@@ -16,10 +17,17 @@
                 <div class="sm:col-span-{{ $span }}">
                     <label class="label" for="{{ $field }}">{{ $label }}</label>
                     <input id="{{ $field }}" name="{{ $field }}" value="{{ old($field, $user->$field) }}" class="input"
-                           @if($field === 'cep') data-cep @endif @if($field === 'phone') data-phone @endif @if($field === 'state') maxlength="2" @endif>
+                           @if($field === 'cep') data-cep @endif @if($field === 'phone') data-phone @endif @if($field === 'state') maxlength="2" @endif
+                           @if($field === 'email') type="email" x-model="email" @endif>
                     @error($field)<p class="error">{{ $message }}</p>@enderror
                 </div>
             @endforeach
+        </div>
+        {{-- Trocar o e-mail exige a senha atual (protege a conta se alguém pegar a sessão aberta) --}}
+        <div x-cloak x-show="email.trim().toLowerCase() !== original.toLowerCase()" class="mt-4 max-w-sm">
+            <label class="label" for="email_password">Senha atual (para trocar o e-mail)</label>
+            <input id="email_password" name="email_password" type="password" autocomplete="current-password" class="input">
+            @error('email_password')<p class="error">{{ $message }}</p>@enderror
         </div>
         <button class="btn-primary mt-6">Salvar alterações</button>
     </form>

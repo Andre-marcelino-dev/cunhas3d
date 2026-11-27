@@ -47,6 +47,15 @@ class AccountController extends Controller
             'state' => 'nullable|string|size:2',
         ]);
 
+        // Trocar o e-mail exige a senha atual: sem isso, quem pegasse a sessão aberta tomaria a conta
+        if (strcasecmp($data['email'], $user->email) !== 0) {
+            $request->validate(
+                ['email_password' => 'required|current_password'],
+                ['email_password.required' => 'Para trocar o e-mail, digite sua senha atual.'],
+                ['email_password' => 'senha atual'],
+            );
+        }
+
         $user->update($data);
 
         return back()->with('success', 'Dados atualizados!');

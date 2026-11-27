@@ -26,6 +26,15 @@ class ClienteController extends Controller
             'cpf' => 'nullable|string|max:14',
         ], [], ['nome' => 'nome', 'telefone' => 'telefone']);
 
+        // Trocar o e-mail exige a senha atual (campo "senha_atual")
+        if (strcasecmp($dados['email'], $user->email) !== 0) {
+            $request->validate(
+                ['senha_atual' => 'required|current_password:sanctum'],
+                ['senha_atual.required' => 'Para trocar o e-mail, informe sua senha atual.'],
+                ['senha_atual' => 'senha atual'],
+            );
+        }
+
         $user->update([
             'name' => $dados['nome'],
             'email' => $dados['email'],

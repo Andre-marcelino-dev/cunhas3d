@@ -10,3 +10,6 @@ Schedule::call(function () {
         ->get()
         ->each(fn (Order $order) => $order->cancel('Cancelado automaticamente: pagamento não identificado em 3 dias'));
 })->hourly()->name('cancelar-pedidos-expirados');
+
+// Apaga do banco os logins do app que já venceram (config/sanctum.php)
+Schedule::command('sanctum:prune-expired --hours=24')->daily()->name('limpar-tokens-vencidos');

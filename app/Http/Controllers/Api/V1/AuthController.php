@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
@@ -18,6 +19,8 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     private const VALIDADE_CODIGO_MINUTOS = 30;
+
+    private const MAX_TENTATIVAS_CODIGO = 5;
 
     public function login(Request $request)
     {
@@ -108,13 +111,28 @@ class AuthController extends Controller
 
         $registro = DB::table('password_reset_tokens')->where('email', $dados['email'])->first();
 
+        // Limite por conta (não só por IP): depois de 5 erros o código é descartado,
+        // assim não dá para tentar os 1.000.000 de combinações trocando de internet
+        $chaveTentativas = 'codigo-senha:'.strtolower($dados['email']);
+
         $valido = $registro
             && Hash::check($dados['codigo'], $registro->token)
             && now()->subMinutes(self::VALIDADE_CODIGO_MINUTOS)->lt($registro->created_at);
 
         if (! $valido) {
+            RateLimiter::hit($chaveTentativas, self::VALIDADE_CODIGO_MINUTOS * 60);
+
+            if (RateLimiter::attempts($chaveTentativas) >= self::MAX_TENTATIVAS_CODIGO) {
+                DB::table('password_reset_tokens')->where('email', $dados['email'])->delete();
+                RateLimiter::clear($chaveTentativas);
+
+                throw ValidationException::withMessages(['codigo' => 'Muitas tentativas erradas. Peça um novo código.']);
+            }
+
             throw ValidationException::withMessages(['codigo' => 'Código inválido ou expirado. Peça um novo código.']);
         }
+
+        RateLimiter::clear($chaveTentativas);
 
         $user = User::where('email', $dados['email'])->firstOrFail();
         $user->update(['password' => $dados['senha']]);
