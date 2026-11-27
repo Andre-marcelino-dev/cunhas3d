@@ -14,3 +14,7 @@ npm-debug.log
 
 # Marca local de que o seed já rodou
 /storage/app/.seeded
+
+# Pacotes gerados para publicar o site
+/deploy/*.zip
+/deploy/ENVIAR/

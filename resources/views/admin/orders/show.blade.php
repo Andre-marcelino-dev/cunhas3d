@@ -14,7 +14,7 @@
                 <h2 class="text-lg font-semibold">Itens do pedido</h2>
                 <x-status-badge :order="$order" />
             </div>
-            <table class="mt-4 w-full text-sm">
+            <div class="mt-4 overflow-x-auto"><table class="w-full min-w-[480px] text-sm">
                 <thead class="text-left text-xs uppercase tracking-wider text-zinc-500"><tr><th class="py-2">Produto</th><th>Qtd</th><th>Unit.</th><th class="text-right">Total</th></tr></thead>
                 <tbody class="divide-y divide-white/5">
                     @foreach($order->items as $item)
@@ -26,7 +26,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </table></div>
             <dl class="ml-auto mt-4 max-w-xs space-y-1.5 text-sm">
                 <div class="flex justify-between"><dt class="text-zinc-400">Subtotal</dt><dd>{{ money($order->subtotal) }}</dd></div>
                 <div class="flex justify-between"><dt class="text-zinc-400">Frete</dt><dd>{{ money($order->shipping) }}</dd></div>

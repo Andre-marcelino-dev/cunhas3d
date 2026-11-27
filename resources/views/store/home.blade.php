@@ -32,10 +32,10 @@
                 <a href="#como-funciona" class="btn-ghost !px-8 !py-4 text-base">Como funciona</a>
             </div>
 
-            <dl data-reveal data-stagger class="mt-16 grid max-w-md grid-cols-3 gap-6">
-                <div><dt class="text-xs uppercase tracking-wider text-zinc-500">Peças entregues</dt><dd class="mt-1 font-display text-3xl font-bold text-white" data-count="12500" data-suffix="+">0</dd></div>
-                <div><dt class="text-xs uppercase tracking-wider text-zinc-500">Materiais</dt><dd class="mt-1 font-display text-3xl font-bold text-white" data-count="6">0</dd></div>
-                <div><dt class="text-xs uppercase tracking-wider text-zinc-500">Avaliação</dt><dd class="mt-1 font-display text-3xl font-bold text-white">4,9★</dd></div>
+            <dl data-reveal data-stagger class="mt-16 grid max-w-md grid-cols-3 gap-4 sm:gap-6">
+                <div class="flex flex-col justify-end"><dt class="text-xs uppercase tracking-wider text-zinc-500">Peças entregues</dt><dd class="mt-1 font-display text-2xl font-bold text-white sm:text-3xl" data-count="12500" data-suffix="+">0</dd></div>
+                <div class="flex flex-col justify-end"><dt class="text-xs uppercase tracking-wider text-zinc-500">Materiais</dt><dd class="mt-1 font-display text-2xl font-bold text-white sm:text-3xl" data-count="6">0</dd></div>
+                <div class="flex flex-col justify-end"><dt class="text-xs uppercase tracking-wider text-zinc-500">Avaliação</dt><dd class="mt-1 font-display text-2xl font-bold text-white sm:text-3xl">4,9★</dd></div>
             </dl>
         </div>
     </div>

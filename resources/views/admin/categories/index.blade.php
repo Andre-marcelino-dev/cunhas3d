@@ -7,8 +7,8 @@
 @endsection
 
 @section('content')
-<div class="glass overflow-hidden !rounded-2xl">
-    <table class="w-full text-left text-sm">
+<div class="glass overflow-x-auto !rounded-2xl">
+    <table class="w-full min-w-[560px] text-left text-sm">
         <thead class="border-b border-white/5 bg-white/[0.02] text-xs uppercase tracking-wider text-zinc-500">
             <tr><th class="px-6 py-3">Categoria</th><th class="px-6 py-3">Categoria pai</th><th class="px-6 py-3">Produtos</th><th class="px-6 py-3">Ordem</th><th class="px-6 py-3">Status</th><th class="px-6 py-3"></th></tr>
         </thead>

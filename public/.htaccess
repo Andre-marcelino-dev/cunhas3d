@@ -1,0 +1,54 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Força HTTPS (o certificado SSL já está ativo na Locaweb)
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Envia o cabeçalho de autorização (usado pela API do app)
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Remove a barra final das URLs
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Tudo que não for arquivo real vai para o Laravel
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Bloqueia arquivos ocultos (.env, .git...), exceto .well-known (certificado SSL)
+<IfModule mod_rewrite.c>
+    RewriteRule (^|/)\.(?!well-known) - [F]
+</IfModule>
+
+# Cache longo para CSS/JS/fontes (o nome dos arquivos compilados muda a cada build)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 30 days"
+    ExpiresByType application/javascript "access plus 30 days"
+    ExpiresByType font/woff2 "access plus 30 days"
+    ExpiresByType image/jpeg "access plus 7 days"
+    ExpiresByType image/png "access plus 7 days"
+    ExpiresByType image/webp "access plus 7 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always unset X-Powered-By
+    Header unset X-Powered-By
+</IfModule>
+
+<IfModule mod_mime.c>
+    AddType model/gltf-binary .glb
+    AddType model/stl .stl
+</IfModule>
