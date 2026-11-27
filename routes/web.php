@@ -3,6 +3,7 @@
 use App\Http\Controllers\Account\AccountController;
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ContactController;
@@ -36,6 +37,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/entrar', [AuthController::class, 'login'])->middleware('throttle:10,1');
     Route::get('/cadastro', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/cadastro', [AuthController::class, 'register'])->middleware('throttle:10,1');
+
+    // Esqueci minha senha: código de 6 números por e-mail (o mesmo usado no app)
+    Route::get('/esqueci-senha', [PasswordResetController::class, 'showRequest'])->name('password.request');
+    Route::post('/esqueci-senha', [PasswordResetController::class, 'sendCode'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/redefinir-senha', [PasswordResetController::class, 'showReset'])->name('password.reset');
+    Route::post('/redefinir-senha', [PasswordResetController::class, 'reset'])->middleware('throttle:10,1')->name('password.update');
 });
 Route::post('/sair', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 

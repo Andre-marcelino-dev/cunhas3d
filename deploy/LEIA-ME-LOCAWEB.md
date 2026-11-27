@@ -123,3 +123,9 @@ Para publicar uma nova versão, gere um pacote novo e envie só o que mudou, nor
 2. **Arquivos:** envie por cima `cunhas3d-app/app`, `cunhas3d-app/config`, `cunhas3d-app/routes`, `cunhas3d-app/resources/views`, `cunhas3d-app/bootstrap/app.php` e `public_html/cunhas3d/.htaccess`.
 3. **Cache:** apague os arquivos de `cunhas3d-app/storage/framework/views/` e, se existir, `cunhas3d-app/bootstrap/cache/config.php`.
 4. **Conferir:** `http://cunhas3d.adminfo.dev.br` deve pular sozinho para `https://`. Se o site entrar em "redirecionamento em loop", volte o `#` nas 2 linhas de "Força HTTPS" do `.htaccess`.
+
+### Atualização de 27/11/2026: "Esqueci minha senha" no site
+
+1. **Arquivos:** envie por cima `cunhas3d-app/app`, `cunhas3d-app/routes`, `cunhas3d-app/resources/views` e `public_html/cunhas3d/build`. Sem SQL.
+2. **Cache:** apague os arquivos de `cunhas3d-app/storage/framework/views/`.
+3. **Conferir:** em https://cunhas3d.adminfo.dev.br/entrar clique em "Esqueci minha senha", use o seu e-mail de cliente e veja se o código chega. Se aparecer "Não conseguimos enviar o e-mail agora", confira os dados `MAIL_...` no `.env` do servidor.

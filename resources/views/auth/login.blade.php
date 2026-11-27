@@ -16,7 +16,10 @@
                 @error('email')<p class="error">{{ $message }}</p>@enderror
             </div>
             <div>
-                <label class="label" for="password">Senha</label>
+                <div class="flex items-baseline justify-between gap-3">
+                    <label class="label" for="password">Senha</label>
+                    <a href="{{ route('password.request') }}" class="text-xs text-neon hover:underline">Esqueci minha senha</a>
+                </div>
                 <input id="password" name="password" type="password" required autocomplete="current-password" class="input">
             </div>
             <label class="flex items-center gap-2 text-sm text-zinc-400">
