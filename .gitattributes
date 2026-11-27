@@ -1,0 +1,11 @@
+# Projeto roda no Linux (WSL/Docker/Locaweb): sempre LF, mesmo com o Git do Windows
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.glb binary
+*.stl binary
+*.3mf binary
+*.zip binary
+*.ico binary
